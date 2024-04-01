@@ -16,10 +16,18 @@
 .button {
     position: absolute;
     bottom: 25px;
-    left: 25px;
+
     font-size: 20px;
     border-radius: 5px;
     background-color: transparent;
     border: 1px solid black;
     cursor: pointer;
+
+    &_right {
+        right: 66px;
+    }
+
+    &_left {
+        left: 25px;
+    }
 }
