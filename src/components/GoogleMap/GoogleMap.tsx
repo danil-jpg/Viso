@@ -1,9 +1,11 @@
 import { AdvancedMarker, Map, MapMouseEvent, Pin } from '@vis.gl/react-google-maps';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { googleMapId } from '@/services/services';
 
 const GoogleMap = () => {
     const cityPosition = { lat: 53.54, lng: 10 };
+
+    const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number }>({ lat: 53.54, lng: 10 });
 
     const [markers, setMarkers] = useState<{ lat: number; lng: number }[]>([]);
 
@@ -17,6 +19,17 @@ const GoogleMap = () => {
         ]);
     };
 
+    const onDragEndHandler = (e: google.maps.MapMouseEvent, index: number) => {
+        const updatedMarkers = [...markers];
+
+        updatedMarkers[index] = {
+            lat: e.latLng?.lat() ? e.latLng?.lat() : 0,
+            lng: e.latLng?.lng() ? e.latLng?.lng() : 0,
+        };
+
+        setMarkers(updatedMarkers);
+    };
+
     const onRemoveButtonClickHandler = () => {
         setMarkers([]);
     };
@@ -27,8 +40,11 @@ const GoogleMap = () => {
                 {markers.map((marker, index) => {
                     return (
                         <AdvancedMarker
+                            draggable
+                            onDragEnd={(e) => {
+                                onDragEndHandler(e, index);
+                            }}
                             key={index}
-                            title={'1'}
                             position={{ lat: marker.lat, lng: marker.lng }}
                             onClick={() => {
                                 setMarkers((current) => {
