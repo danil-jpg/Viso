@@ -41,14 +41,8 @@ const GoogleMap = () => {
     };
 
     const onRemoveButtonClickHandler = () => {
-        setMarkers([]);
+        setMarkersPosition([]);
     };
-
-    useEffect(() => {
-        clusterRef.current?.clearMarkers();
-        clusterRef.current?.addMarkers(Object.values(markers));
-        console.log(markers);
-    }, [markers]);
 
     const setMarkerRef = (marker: Marker | null, key: string) => {
         if (marker && markers[key]) return;
@@ -65,9 +59,14 @@ const GoogleMap = () => {
         });
     };
 
+    useEffect(() => {
+        clusterRef.current?.clearMarkers();
+        clusterRef.current?.addMarkers(Object.values(markers));
+    }, [markers]);
+
     return (
         <div className='map-container'>
-            <Map defaultZoom={9} center={cityPosition} mapId={googleMapId} onClick={(e: MapMouseEvent) => onMapClickHandler(e)}>
+            <Map defaultZoom={9} defaultCenter={cityPosition} mapId={googleMapId} onClick={(e: MapMouseEvent) => onMapClickHandler(e)}>
                 {markersPosition.map((marker, index) => {
                     return (
                         <AdvancedMarker
@@ -84,7 +83,7 @@ const GoogleMap = () => {
                                 });
                             }}>
                             <Pin>
-                                <div style={{ fontSize: '18px', color: 'black' }}>
+                                <div className='pin'>
                                     <p>{index}</p>
                                 </div>
                             </Pin>
