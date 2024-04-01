@@ -3,8 +3,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { googleMapId } from '@/services/services';
 import { Marker, MarkerClusterer } from '@googlemaps/markerclusterer';
 import { Timestamp } from '@firebase/firestore';
-import { collection, doc, setDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { DB } from '@/config/firebase-config';
+import firebase from 'firebase/compat/app';
 
 interface IMarkerData {
     Location: {
@@ -24,13 +25,20 @@ const GoogleMap = () => {
 
     const clusterRef = useRef<MarkerClusterer | null>(null);
 
-    const questsRef = collection(DB, 'Quests');
-
     const postData = async () => {
-        await setDoc(doc(questsRef, 'Quest'), {
-            data: markersData,
-        });
+        const questsRef = collection(DB, 'Quests');
+
+        const docRef = doc(questsRef);
+        await setDoc(docRef, markersData[markersData.length - 1]);
+
+        console.log(markersData);
     };
+
+    useEffect(() => {
+        if (markersData.length) {
+            postData();
+        }
+    }, [markersData]);
 
     useEffect(() => {
         if (!map) return;
@@ -42,8 +50,9 @@ const GoogleMap = () => {
     const onMapClickHandler = (e: MapMouseEvent) => {
         const timeStamp = Timestamp.fromDate(new Date());
 
-        if (!markersData.length) {
-            setMarkersData([
+        setMarkersData((current) => {
+            return [
+                ...current,
                 {
                     Location: {
                         lat: e.detail.latLng?.lat ? e.detail.latLng?.lat : 0,
@@ -52,28 +61,8 @@ const GoogleMap = () => {
                     next: null,
                     TimeStamp: timeStamp,
                 },
-            ]);
-        } else {
-            setMarkersData((current) => {
-                const prevMarkers = [...current];
-
-                prevMarkers[prevMarkers.length - 1].next = +timeStamp.seconds;
-
-                return [
-                    ...current,
-                    {
-                        Location: {
-                            lat: e.detail.latLng?.lat ? e.detail.latLng?.lat : 0,
-                            lng: e.detail.latLng?.lng ? e.detail.latLng?.lng : 0,
-                        },
-                        next: null,
-                        TimeStamp: timeStamp,
-                    },
-                ];
-            });
-        }
-
-        postData();
+            ];
+        });
     };
 
     const onDragEndHandler = (e: google.maps.MapMouseEvent, index: number) => {
@@ -144,9 +133,6 @@ const GoogleMap = () => {
             </Map>
             <button className='button button_left' onClick={onRemoveButtonClickHandler}>
                 Remove all the marks
-            </button>
-            <button className='button button_right' onClick={postData}>
-                Send marks
             </button>
         </div>
     );
